@@ -7,79 +7,80 @@ export const PERFORM_ACTION_AGAINST_COMPUTER_API = Symbol('Perform Action Agains
 export const PERFORM_ACTION_COMPUTER_AGAINST_COMPUTER_API = Symbol('Perform Action Computer vs Computer');
 export const CLEAR_ACTION_API = Symbol('Clear Action');
 
-export default store => next => action => {
+const listenAction = ({action, next, socket}) => {
+  const { type } = action[LISTEN_ACTIONS_API];
 
-  const listenActionAPI = action[LISTEN_ACTIONS_API];
-  const performActionAPI = action[PERFORM_ACTION_API];
-  const performActionAgainstComputerAPI = action[PERFORM_ACTION_AGAINST_COMPUTER_API];  
-  const performActionComputerVsComputerAPI = action[PERFORM_ACTION_COMPUTER_AGAINST_COMPUTER_API];
-  const clearActionAPI = action[CLEAR_ACTION_API];
+  socket.on("listenPlayerAction", status => {
+    next({type, status});
+  });
+};
 
-  // So the middleware doesn't get applied to every single action
-  if (typeof listenActionAPI === 'undefined' && typeof performActionAPI === 'undefined' 
-        && typeof performActionAgainstComputerAPI ==='undefined' && typeof clearActionAPI === "undefined"
-        && typeof performActionComputerVsComputerAPI === 'undefined') 
-  {
-    return next(action);
-  }
-
-  if (typeof clearActionAPI !== "undefined")
-  {
-    const { type } = clearActionAPI;
-    socket.off('listenPlayerAction');
-    return next({type});
-  }
-
-  if (typeof listenActionAPI !== 'undefined')
-  {
-      const { type } = listenActionAPI;
-
-      socket.on("listenPlayerAction", status => {
-        next({type, status});
-      });
-  }
-
-  if (typeof performActionComputerVsComputerAPI !== 'undefined')
-  {
-    const { type } = performActionComputerVsComputerAPI;
-    let player = 1;
-    let obj = {
-      value : 56
-    }
-
-    while (obj.value > 1)
-    {
-      obj = calculareAction(computerAction(obj), player);
-      player = player === 1 ? 2 : 1;
-      // Computer 1 Move
-      next({type, status : obj });
-    }
-
-  } 
-
-  if (typeof performActionAgainstComputerAPI !== 'undefined')
-  {
-    const {types, obj, currentUserId } = performActionAgainstComputerAPI;
-    const [playerMove, computerMove] = types;
-    const userAction = calculareAction(obj, currentUserId);
-    
-    next({type : playerMove, status : userAction });
-
-    // Computer Movement
-    if (userAction.winner)
-    {
-      return;
-    }
-    
-    return next({type : computerMove, status : calculareAction(computerAction(userAction), 2) });    
-    
-  }  
-
-  if (typeof performActionAPI !== 'undefined')
-  {
-    const { type, obj, currentUserId } = performActionAPI;
+const performAction = ({action, next, socket}) => {
+    const { type, obj, currentUserId } = action[PERFORM_ACTION_API];
     socket.emit("performPlayerAction", calculareAction(obj, currentUserId) );
     return next({type});
+}
+
+const clearAction = ({action, next, socket}) => {
+  const { type } = action[CLEAR_ACTION_API];
+  socket.off('listenPlayerAction');
+  return next({type});  
+}
+
+const performActionVsComputer = ({action, next}) => {
+  const {types, obj, currentUserId } = action[PERFORM_ACTION_AGAINST_COMPUTER_API];
+  const [playerMove, computerMove] = types;
+  const userAction = calculareAction(obj, currentUserId);
+
+  next({type : playerMove, status : userAction });
+
+  // Computer Movement
+  if (userAction.winner)
+  {
+    return;
   }
+
+  return next({type : computerMove, status : calculareAction(computerAction(userAction), 2) });   
+}
+
+const performComputerVsComputerAction = ({action, next}) => {
+  const { type } = action[PERFORM_ACTION_COMPUTER_AGAINST_COMPUTER_API];
+  let player = 1;
+  let obj = {
+    value : 56
+  }
+
+  while (obj.value > 1)
+  {
+    obj = calculareAction(computerAction(obj), player);
+    player = player === 1 ? 2 : 1;
+    // Computer 1 Move
+    next({type, status : obj });
+  } 
+}
+
+// API Factory Function
+const gameAPI = () => {
+  return {
+    [LISTEN_ACTIONS_API] : listenAction,
+    [PERFORM_ACTION_API] : performAction,
+    [CLEAR_ACTION_API] : clearAction,
+    [PERFORM_ACTION_AGAINST_COMPUTER_API] : performActionVsComputer,
+    [PERFORM_ACTION_COMPUTER_AGAINST_COMPUTER_API] : performComputerVsComputerAction
+  }
+}
+
+// Middleware Executor
+export default store => next => action => {
+ 
+  const api = gameAPI();
+
+  if (Object.getOwnPropertySymbols(action).length 
+    && api[Object.getOwnPropertySymbols(action)[0]] !== undefined)
+  {
+    return api[Object.getOwnPropertySymbols(action)[0]]({action, next, socket});
+  }
+
+  return next(action);
 
 }

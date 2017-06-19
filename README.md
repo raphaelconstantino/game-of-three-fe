@@ -1,4 +1,3 @@
 - Validate to select only divisible by 3
-- Create component for options btns
 - split Game.js
 - Display which player won when machine x machine

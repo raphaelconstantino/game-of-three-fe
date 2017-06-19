@@ -6,6 +6,7 @@ import {
 } from '../actions/gameActionCreator';
 // Components
 import InsertVal from '../components/insertVal';
+import ActionOptionBtn from '../components/actionOptionBtn';
 
 class Game extends Component {
 
@@ -22,18 +23,9 @@ class Game extends Component {
   actionsBtns (value, performAction, currentUserId) {
     return (
         <div>
-          <button type="submit" 
-            onClick={() => performAction({value, action : -1}, currentUserId )} className="btn btn-info">
-              -1
-          </button>
-          <button type="submit" 
-            onClick={() => performAction( {value, action : 0}, currentUserId )} className="btn btn-info">
-              0
-          </button>
-          <button type="submit" 
-            onClick={() => performAction( {value, action : 1}, currentUserId )} className="btn btn-info">
-              +1
-          </button>
+          <ActionOptionBtn performAction={performAction} value={value} action={-1} currentUserId={currentUserId} label={"-1"}/>
+          <ActionOptionBtn performAction={performAction} value={value} action={0} currentUserId={currentUserId} label={"0"}/>
+          <ActionOptionBtn performAction={performAction} value={value} action={1} currentUserId={currentUserId} label={"+1"}/>
         </div> 
     )
   }

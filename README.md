@@ -1,3 +1,1 @@
-- Validate to select only divisible by 3
-- split Game.js
 - Display which player won when machine x machine

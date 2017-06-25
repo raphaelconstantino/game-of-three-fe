@@ -45,15 +45,15 @@ const performActionVsComputer = ({action, next}) => {
 
 const performComputerVsComputerAction = ({action, next}) => {
   const { type } = action[PERFORM_ACTION_COMPUTER_AGAINST_COMPUTER_API];
-  let player = 1;
+  let player = "1";
   let obj = {
-    value : 56
+    value : Math.floor((Math.random() * 100) + 1)
   }
 
   while (obj.value > 1)
   {
     obj = calculareAction(computerAction(obj), player);
-    player = player === 1 ? 2 : 1;
+    player = player === "1" ? "2" : "1";
     // Computer 1 Move
     next({type, status : obj });
   } 

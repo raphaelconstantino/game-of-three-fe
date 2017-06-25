@@ -2,6 +2,8 @@ export const calculareAction = (obj, currentUserId) => {
     let value = obj.action === undefined ? parseInt(obj.value, 10) : ( (parseInt(obj.value, 10) + parseInt(obj.action, 10) ) / 3);
     let winner = (value === 1 && obj.action !== undefined) ? currentUserId : "";
 
+    // Round in case it's not whole
+    value = Math.round(value);
 
     return {
       value,

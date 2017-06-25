@@ -5,8 +5,9 @@ import {
   listenAction, performAction, performActionAgainstComputer, performActionComputerAgainstComputer, clearActions 
 } from '../actions/gameActionCreator';
 // Components
-import InsertVal from '../components/insertVal';
-import ActionOptionBtn from '../components/actionOptionBtn';
+import Output from '../components/output';
+import OutputTable from '../components/outputTable';
+import Actions from '../components/actions';
 
 class Game extends Component {
 
@@ -20,55 +21,19 @@ class Game extends Component {
     clearActions();
   }
 
-  actionsBtns (value, performAction, currentUserId) {
-    return (
-        <div>
-          <ActionOptionBtn performAction={performAction} value={value} action={-1} currentUserId={currentUserId} label={"-1"}/>
-          <ActionOptionBtn performAction={performAction} value={value} action={0} currentUserId={currentUserId} label={"0"}/>
-          <ActionOptionBtn performAction={performAction} value={value} action={1} currentUserId={currentUserId} label={"+1"}/>
-        </div> 
-    )
-  }
-
-  actionIpt (performAction, currentUserId) {
-    return (
-      <form>
-        <InsertVal currentUserId={currentUserId} inputRef={el => this.inputElement = el} inputElement={() => this.inputElement} performAction={performAction} />
-      </form>    
-    )
-  }
-
-  actionsContent (value, performAction, isPlayerTurn, currentUserId) {
-    if (!isPlayerTurn)
-    {
-      return (<div></div>);
-    }
-
-    if (value) {
-      return (
-        <div>
-          <h4>Choose one of the following options.</h4>
-          {this.actionsBtns(value, performAction, currentUserId)}
-        </div>
-      ) 
-    }
-
-    return (
-      <div>
-        <h4>Please type a random whole Number to start the game.</h4>
-        {this.actionIpt(performAction, currentUserId)}
-      </div>  
-    )
-  }
-
-  winnerMessage (winner, currentUser) {
+  winnerMessage (currentStatus, currentUser, isComputerVsComputer, status) {
     
-    if (!winner)
+    if (!currentStatus.winner)
     {
       return false;
     }
+
+    if (isComputerVsComputer)
+    {
+      return (<div className="alert alert-success">{"Player " + currentStatus.player + " Won!"}</div>);
+    }
     
-    if(winner === currentUser)
+    if(currentStatus.winner === currentUser)
     {
       return (<div className="alert alert-success">You Won The Game!</div>);
     }
@@ -77,42 +42,29 @@ class Game extends Component {
   }
   
   render() {
-    const { game, performAction } = this.props;
+    const { game, performAction, currentPlayer, isPlayerTurn, isComputerVsComputer } = this.props;
+    const { status, currentStatus } = game;
     return (
       <div className="App">
 
-        {this.winnerMessage(game.currentStatus.winner, this.props.currentPlayer) ||
+        {this.winnerMessage(currentStatus, currentPlayer, isComputerVsComputer) ||
           <div className="container">
 
-              {this.props.isPlayerTurn ? "" : 
+              {isPlayerTurn ? "" : 
                 (<div className="alert alert-warning"><strong>Please wait for your turn!</strong></div>) }
               
-              {this.actionsContent(game.currentStatus.value, performAction, this.props.isPlayerTurn, this.props.currentPlayer)}  
+              <Actions 
+                value={currentStatus.value} 
+                performAction={performAction} 
+                isPlayerTurn={isPlayerTurn} 
+                currentUserId={currentPlayer} />
+
           </div>
         }
 
-        <div className="container">
-          <h2>Actions Output</h2>
-            <p>Current Value: <strong>{game.currentStatus.value}</strong></p>
-            <ul className="list-group">
-              {
-                game.status.map((s, i) => {
-                  let playerMove = s.player === this.props.currentPlayer;
-                  return (
-                    <li className={"row list-group-item " + (playerMove ? "text-primary" : "text-warning")} key={i}>
-                      <div className="col-md-6">
-                        {playerMove ? "You played: " : ""}
-                      </div>
-                      <div className="col-md-6">
-                        <p>Action: <strong>{s.action}</strong></p>
-                        <p>Value : <strong>{s.value}</strong></p>
-                      </div>  
-                    </li>
-                  )    
-                })
-              }
-            </ul>
-        </div>          
+        <Output currentStatus={currentStatus.value}>
+          <OutputTable status={status} currentPlayer={currentPlayer} isComputerVsComputer={isComputerVsComputer}/>
+        </Output>           
 
       </div>
     );

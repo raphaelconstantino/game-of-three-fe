@@ -17,16 +17,16 @@ const playerVsPlayer = ({action, next, socket}) => {
 
 const playerVsComputer = ({action, next}) => {
   const { type } = action[CHOOSE_PLAYER_VS_COMPUTER_API];
-  let players = [{id : 1, playerTurn : 1}, {id : 2, playerTurn : 1}];
-  let currentPlayer = 1;
+  let players = [{id : "1", playerTurn : "1"}, {id : "2", playerTurn : "1"}];
+  let currentPlayer = "1";
 
   next({type, players, currentPlayer, isAgainstComputer : true});
 }
 
 const computerVsComputer = ({action, next}) => {
   const { type } = action[CHOOSE_COMPUTER_VS_COMPUTER_API];
-  let players = [{id : 1, playerTurn : 1}, {id : 2, playerTurn : 1}];
-  let currentPlayer = 1;
+  let players = [{id : "1", playerTurn : "1"}, {id : "2", playerTurn : "1"}];
+  let currentPlayer = "1";
 
   next({type, players, currentPlayer, isComputerVsComputer : true});
 }
